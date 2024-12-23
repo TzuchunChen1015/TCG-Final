@@ -11,6 +11,8 @@ constexpr int MAX_DICE_NUM = 6;
 constexpr int MAX_PIECE_NUM = 6;
 constexpr int MAX_POS_NUM = 25;
 
+constexpr int MAX_SIZE = 5e6;
+
 }
 
 class Zobrist {
@@ -21,6 +23,19 @@ private:
 public:
   static void Initialize();
   static unsigned int GetHashValue(const Board& board);
+};
+
+class TranspositionTable {
+private:
+  struct Data {
+    double alpha, beta;
+    double m;
+    int depth;
+    int move_id;
+  };
+public:
+  static unsigned int hash_value[Const::MAX_SIZE];
+  static Data data[Const::MAX_SIZE];
 };
 
 int Board::decide()
@@ -69,3 +84,8 @@ unsigned int Zobrist::GetHashValue(const Board& board) {
   return hash_value;
 }
 /* Zobrist Hash */
+
+/* Transposition Table */
+unsigned int TranspositionTable::hash_value[Const::MAX_SIZE];
+TranspositionTable::Data TranspositionTable::data[Const::MAX_SIZE];
+/* Transposition Table */
