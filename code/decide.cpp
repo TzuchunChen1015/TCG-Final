@@ -67,10 +67,12 @@ public:
   static double NegaScout(Board& board, double alpha, double beta, int depth);
 };
 
-int Board::decide()
-{
-    generate_moves();
-    return random_num() % move_count;
+int Board::decide() {
+  Zobrist::Initialize();
+  Solve::NegaScout(*this, Const::VAL_MIN, Const::VAL_MAX, 5);
+  unsigned int hash_value = Zobrist::GetHashValue(*this);
+  int hash_index = hash_value % Const::MAX_SIZE;
+  return TranspositionTable::data[hash_index].move_id;
 }
 
 /* Zobrist Hash */
