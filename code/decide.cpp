@@ -39,6 +39,8 @@ private:
 public:
   static unsigned int hash_value[Const::MAX_SIZE];
   static Data data[Const::MAX_SIZE];
+
+  static void Insert(unsigned int value, double alpha, double beta, double m, int depth, int move_id);
 };
 
 class Solve {
@@ -69,7 +71,9 @@ public:
 
 int Board::decide() {
   Zobrist::Initialize();
-  Solve::NegaScout(*this, Const::VAL_MIN, Const::VAL_MAX, 5);
+  for(int i = 1; i <= 5; i++) {
+    Solve::NegaScout(*this, Const::VAL_MIN, Const::VAL_MAX, i);
+  }
   unsigned int hash_value = Zobrist::GetHashValue(*this);
   int hash_index = hash_value % Const::MAX_SIZE;
   return TranspositionTable::data[hash_index].move_id;
@@ -119,6 +123,16 @@ unsigned int Zobrist::GetHashValue(const Board& board) {
 /* Transposition Table */
 unsigned int TranspositionTable::hash_value[Const::MAX_SIZE];
 TranspositionTable::Data TranspositionTable::data[Const::MAX_SIZE];
+
+void TranspositionTable::Insert(unsigned int value, double alpha, double beta, double m, int depth, int move_id) {
+  int hash_index = value % Const::MAX_SIZE;
+  TranspositionTable::hash_value[hash_index] = value;
+  TranspositionTable::data[hash_index].alpha = alpha;
+  TranspositionTable::data[hash_index].beta = beta;
+  TranspositionTable::data[hash_index].m = m;
+  TranspositionTable::data[hash_index].depth = depth;
+  TranspositionTable::data[hash_index].move_id = move_id;
+}
 /* Transposition Table */
 
 /* NegaScout and Star1 */
@@ -172,16 +186,15 @@ double Solve::NegaScout(Board& board, double alpha, double beta, int depth) {
   if(TranspositionTable::hash_value[hash_index] == hash_value && TranspositionTable::data[hash_index].depth >= depth) {
     return TranspositionTable::data[hash_index].m;
   }
-  TranspositionTable::hash_value[hash_index] = hash_value;
-  TranspositionTable::data[hash_index].alpha = alpha;
-  TranspositionTable::data[hash_index].beta = beta;
-  TranspositionTable::data[hash_index].depth = depth;
   if(board.check_winner() || !depth) {
-    return TranspositionTable::data[hash_index].m = Solve::Evaluate(board);
+    double m = Solve::Evaluate(board);
+    TranspositionTable::Insert(hash_value, alpha, beta, m, depth, 0);
+    return m;
   }
   board.generate_moves();
   double m = Const::VAL_MIN;
   double n = beta;
+  int best_move_id = 0;
   for(int move_id = 0; move_id < board.move_count; move_id++) {
     Board child = board;
     child.move(move_id);
@@ -192,13 +205,15 @@ double Solve::NegaScout(Board& board, double alpha, double beta, int depth) {
       } else {
         m = -Solve::StarOne(child, -beta, -t, depth - 1);
       }
-      TranspositionTable::data[hash_index].move_id = move_id;
+      best_move_id = move_id;
     }
     if(m >= beta) {
-      return TranspositionTable::data[hash_index].m = m;
+      TranspositionTable::Insert(hash_value, alpha, beta, m, depth, move_id);
+      return m;
     }
     n = std::max(alpha, m) + 1;
   }
-  return TranspositionTable::data[hash_index].m = m;
+  TranspositionTable::Insert(hash_value, alpha, beta, m, depth, best_move_id);
+  return m;
 }
 /* NegaScout and Star1 */
