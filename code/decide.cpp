@@ -15,7 +15,7 @@ constexpr double VAL_MAX = 100.0;
 constexpr double VAL_MIN = -100.0;
 
 constexpr int MAX_SIZE = 5e6;
-constexpr double AVERAGE_TIMER = 20.0;
+constexpr double AVERAGE_TIMER = 25.0;
 
 }
 
@@ -77,7 +77,7 @@ int Board::decide(double remain_time) {
   Zobrist::Initialize();
 
   clock_gettime(CLOCK_REALTIME, &start);
-  for(int i = 1; i <= 7; i++) {
+  for(int i = 1; i <= 15; i++) {
     Solve::NegaScout(*this, Const::VAL_MIN, Const::VAL_MAX, i);
     clock_gettime(CLOCK_REALTIME, &end);
     double wall_clock_in_seconds = (double)((end.tv_sec + end.tv_nsec * 1e-9) - (double)(start.tv_sec + start.tv_nsec * 1e-9));
