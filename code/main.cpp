@@ -42,7 +42,7 @@ int main()
             current_board.init_with_piecepos(piece_position, moving_color);
             current_board.dice = dice;
             current_board.print_board();
-            int step_id = current_board.decide();
+            int step_id = current_board.decide(remain_time);
             int step_start_position = current_board.moves[step_id][0], step_destination = current_board.moves[step_id][1];
             int moving_piece = current_board.board[step_start_position] - moving_color * PIECE_NUM;
             // reply steps

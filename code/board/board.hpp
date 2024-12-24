@@ -25,7 +25,7 @@ typedef struct _board
 
     // not basic functions, written in decide.cpp
     bool simulate();
-    int decide();
+    int decide(double remain_time);
     int first_move_decide_dice();
 } Board;
 #endif

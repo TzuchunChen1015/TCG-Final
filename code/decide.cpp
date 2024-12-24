@@ -15,6 +15,7 @@ constexpr double VAL_MAX = 100.0;
 constexpr double VAL_MIN = -100.0;
 
 constexpr int MAX_SIZE = 5e6;
+constexpr double AVERAGE_TIMER = 20.0;
 
 }
 
@@ -69,11 +70,22 @@ public:
   static double NegaScout(Board& board, double alpha, double beta, int depth);
 };
 
-int Board::decide() {
+#include <time.h>
+struct timespec start, end;
+
+int Board::decide(double remain_time) {
   Zobrist::Initialize();
-  for(int i = 1; i <= 5; i++) {
+
+  clock_gettime(CLOCK_REALTIME, &start);
+  for(int i = 1; i <= 7; i++) {
     Solve::NegaScout(*this, Const::VAL_MIN, Const::VAL_MAX, i);
+    clock_gettime(CLOCK_REALTIME, &end);
+    double wall_clock_in_seconds = (double)((end.tv_sec + end.tv_nsec * 1e-9) - (double)(start.tv_sec + start.tv_nsec * 1e-9));
+    if(wall_clock_in_seconds * Const::AVERAGE_TIMER > remain_time + 1e-4) {
+      break;
+    }
   }
+
   unsigned int hash_value = Zobrist::GetHashValue(*this);
   int hash_index = hash_value % Const::MAX_SIZE;
   return TranspositionTable::data[hash_index].move_id;
@@ -200,7 +212,7 @@ double Solve::NegaScout(Board& board, double alpha, double beta, int depth) {
     child.move(move_id);
     double t = -Solve::StarOne(child, -n, -std::max(alpha, m), depth - 1);
     if(t > m) {
-      if(n == beta || t >= beta) {
+      if(n == beta || depth < 3 || t >= beta) {
         m = t;
       } else {
         m = -Solve::StarOne(child, -beta, -t, depth - 1);
